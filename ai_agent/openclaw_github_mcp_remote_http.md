@@ -72,11 +72,13 @@ openclaw mcp set github '{
 openclaw mcp show github
 ```
 
-확인할 점은 `Authorization` 헤더가 실제 토큰 값이 아니라 다음처럼 환경변수 참조로 남아 있는지다.
+이 명령은 GitHub MCP가 어떤 URL, transport, header 설정으로 등록되어 있는지 확인하기 위한 것이다. 설정 파일에는 `Authorization` 헤더가 실제 토큰 값이 아니라 다음처럼 환경변수 참조로 저장되어 있어야 한다.
 
 ```text
 Bearer ${GITHUB_MCP_TOKEN}
 ```
+
+만약 `show` 출력이나 로그에 실제 `github_pat_...` 값이 보이면 그 출력은 외부에 공유하지 않는다. 중요한 기준은 OpenClaw 설정에 실제 토큰을 직접 저장하지 않는 것이다.
 
 실제 연결과 사용 가능한 tool 개수를 확인한다.
 
