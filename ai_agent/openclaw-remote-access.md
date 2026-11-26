@@ -1,6 +1,6 @@
 # 윈도우에서 맥 미니 OpenClaw의 기존 대화 이어 쓰기
 
-**윈도우 브라우저에서 기존 세션을 열어 대화를 이어갈 수 있음을 확인했다.** 윈도우는 화면과 입력만 담당하고, 대화 기록과 작업 실행은 맥 미니의 기존 OpenClaw Gateway에 남는다. SSH, 별도 Windows 앱, 공유기 포트 포워딩은 필요 없다.
+**윈도우 브라우저와 OpenClaw Companion에서 맥 미니의 기존 Gateway에 접속하는 방법을 정리했다.** 윈도우는 화면과 입력만 담당하고, 대화 기록과 작업 실행은 맥 미니의 기존 OpenClaw Gateway에 남는다. 브라우저로만 쓸 때는 별도 앱이 필요 없고, 두 방식 모두 SSH나 공유기 포트 포워딩은 필요 없다.
 
 ## 1. 맥 미니와 윈도우를 Tailscale에 연결
 
@@ -33,8 +33,24 @@ openclaw gateway status --deep
 
 **주소가 안 열리면:** 두 기기의 Tailscale 연결, 맥 미니의 절전 여부, Gateway 상태를 확인한다. 맥 미니의 `tailscale serve status --json`에서 `Web` 아래의 호스트 이름으로 주소를 다시 확인할 수 있다. `Proxy`의 `127.0.0.1` 주소는 맥 미니 내부용이다. macOS에서 `tailscale` 명령을 찾지 못하고 Tailscale 앱이 기본 위치에 설치되어 있다면 `/Applications/Tailscale.app/Contents/MacOS/Tailscale serve status --json`을 실행한다.
 
+## 4. 브라우저 대신 Windows용 OpenClaw Companion 사용하기
+
+브라우저 접속을 확인했다면 같은 맥 미니 Gateway에 **OpenClaw Companion(Windows Hub)**을 연결할 수 있다. 윈도우는 채팅 창으로만 쓰고, 기존 세션 관리와 작업은 맥 미니에서 계속한다. 이 구성에서는 윈도우에 별도 Gateway나 WSL을 설치하지 않는다.
+
+1. [Windows Hub 릴리스](https://github.com/openclaw/openclaw-windows-node/releases/latest)에서 설치 파일을 받는다. 일반적인 Intel·AMD 64비트 PC는 **`OpenClawCompanion-Setup-x64.exe`**를 쓰면 된다. Dev·Tray ZIP은 필요 없다.
+2. 윈도우의 Tailscale을 연결한 상태에서 Companion을 열고 **Connect to an existing Gateway**를 선택한다. **Gateway Address**에는 3단계에서 확인한 맥 미니의 Full domain을 사용한다. WebSocket 주소는 `wss://mac-mini.example.ts.net` 형식이다. 예시 도메인을 실제 주소로 바꾼다.
+3. **Setup Code**로 연결하려면 맥 미니 터미널에서 아래 명령을 실행한다. 출력된 코드를 Companion의 **Setup Code** 칸에 붙여넣고 **Shared Token**은 비워둔 채 **Check connection**을 누른다. `OPENCLAW_REDACTED`는 가림 표시이지 토큰이 아니다.
+
+   ```sh
+   openclaw qr --url 'wss://mac-mini.example.ts.net' --setup-code-only
+   ```
+
+4. **Gateway authentication failed or device approval is required**가 나오면, 코드를 다시 만들기 전에 맥 미니에서 `openclaw devices list`로 승인 대기 목록을 확인한다. 이번에는 **OpenClaw Windows Tray**라는 이름으로 요청이 들어왔다. 방금 시도와 일치하는 요청만 `openclaw devices approve <요청-ID>`로 승인하고, Companion에서 **Check connection**을 다시 누른다. 연결에 성공했다면 앞선 시도의 중복 요청은 승인할 필요 없다.
+5. **What can your assistant use?**에서는 윈도우 제어 기능이 필요 없으므로 **Strict**를 선택하고 **Canvas**, **Screen Capture** 등 남아 있는 기능도 끈다. **Connection options**의 **Node mode**, **Local MCP server**, **Ollama sharing** 역시 끈다. **Launch OpenClaw at sign-in**은 자동 실행 여부라 취향대로 정하면 된다.
+6. **Set up your AI**에서는 **Current model (Already configured)**을 선택한다. **Local AI**는 건너뛰기가 아니라 윈도우에 로컬 모델을 설정하는 옵션이다. 설정을 끝내고 Companion에서 **기존 대화**를 열어 이전 메시지가 보이고 대화를 이어갈 수 있는지 확인한다.
+
 ## 아이폰·아이패드나 외부에서 쓰려면
 
-이번 확인 범위는 윈도우 브라우저다. 아이폰·아이패드에서도 Tailscale을 설치해 같은 네트워크에 연결한 뒤 Safari에서 같은 HTTPS 주소와 기존 대화를 열면 된다. 외부 접속은 Wi-Fi를 끄고 셀룰러에서 시험해 볼 수 있다. 맥 미니는 절전 상태가 아니어야 하고, Tailscale과 Gateway가 실행 중이어야 한다.
+윈도우에서는 브라우저와 Companion 연결을 확인했다. 아이폰·아이패드에서도 Tailscale을 설치해 같은 네트워크에 연결한 뒤 Safari에서 같은 HTTPS 주소와 기존 대화를 열면 된다. 외부 접속은 Wi-Fi를 끄고 셀룰러에서 시험해 볼 수 있다. 맥 미니는 절전 상태가 아니어야 하고, Tailscale과 Gateway가 실행 중이어야 한다.
 
-공식 문서: [Tailscale Serve 설정](https://docs.openclaw.ai/gateway/tailscale) · [OpenClaw Control UI](https://docs.openclaw.ai/web/control-ui)
+공식 문서: [Tailscale Serve 설정](https://docs.openclaw.ai/gateway/tailscale) · [OpenClaw Control UI](https://docs.openclaw.ai/web/control-ui) · [Windows Hub](https://docs.openclaw.ai/platforms/windows)
